@@ -11,6 +11,29 @@ const auth = require("../middlewares/auth");
 // Models
 const User = require("../models/User");
 
+let refreshTokens = [];
+
+// GENERATE ACCESS TOKEN
+const generateAccessToken = (payload) => {
+  return jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: 360000 });
+};
+
+// GENERATE REFRESH TOKEN
+const generateRefreshToken = (payload) => {
+  return jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: "365d" });
+};
+
+// @route POST api/user/logout
+// @desc refresh token
+// @access private system
+router.post("/logout", async (req, res) => {
+  res.clearCookie("refreshToken");
+  refreshTokens = refreshTokens.filter(
+    (token) => token !== req.cookies.refreshToken
+  );
+  res.status(200).json("Logged out !");
+});
+
 // @route GET api/user/
 // @desc User infomation
 // @access public
@@ -144,22 +167,60 @@ router.post(
 
       // payload for JWT
       const payload = {
-        user: { id: user.id },
+        user: { id: user.id, role: user.role, email: user.email },
       };
-      jwt.sign(
-        payload,
-        process.env.JWT_SECRET,
-        { expiresIn: 360000 },
-        (err, token) => {
-          if (err) throw err;
-          res.json({ token });
-        }
-      );
+      const accessToken = generateAccessToken(payload);
+      const refreshToken = generateRefreshToken(payload);
+      refreshTokens.push(refreshToken);
+      res.cookie("refreshToken", refreshToken, {
+        httpOnly: true,
+        secure: false,
+        path: "/",
+        sameSite: "strict",
+      });
+      res.status(200).json({ accessToken });
     } catch (error) {
       console.log(error);
       res.status(500).send("Server is died");
     }
   }
 );
+
+// @route POST api/user/refresh
+// @desc refresh token
+// @access private system
+router.post("/refresh", async (req, res) => {
+  // Take refresh token from user
+  const refreshToken = req.cookies.refreshToken;
+  if (!refreshToken) {
+    return res.status(401).json("You are not authenticated");
+  }
+  if (!refreshTokens.includes(refreshToken)) {
+    return res.status(403).json("Refresh token is not valid");
+  }
+  const { email, password } = req.body;
+  let user = await User.findOne({
+    email,
+  });
+  const users = {
+    user: { id: user.id },
+  };
+  jwt.verify(refreshToken, process.env.JWT_REFRESH, (err, payload = users) => {
+    if (err) {
+      console.log(err);
+    }
+    refreshTokens = refreshTokens.filter((token) => token !== refreshToken);
+    //Create new accesstoken, refreshtoken
+    const newAccessToken = generateAccessToken(payload);
+    const newRefreshToken = generateRefreshToken(payload);
+    res.cookie("refreshToken", newRefreshToken, {
+      httpOnly: true,
+      secure: false,
+      path: "/",
+      sameSite: "strict",
+    });
+    res.status(200).json({ accessToken: newAccessToken });
+  });
+});
 
 module.exports = router;

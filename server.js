@@ -2,12 +2,14 @@ const express = require("express");
 const morgan = require("morgan");
 const cors = require("cors");
 const bodyParser = require("body-parser");
+const cookieParser = require("cookie-parser");
 require("dotenv").config({
   path: "./config/index.env",
 });
 
 const app = express();
 app.use(bodyParser.json());
+app.use(cookieParser());
 
 // Connect DB
 const connectDB = require("./config/db");
@@ -19,9 +21,12 @@ app.use(morgan("dev"));
 app.use(cors());
 
 // Routes
-app.use("/api/user/", require("./routes/auth.route"));
-app.use("/api/category/", require("./routes/productCategory.route"));
-app.use("/api/product/", require("./routes/product.route"));
+app.use("/api/v1/user/", require("./routes/auth.route"));
+app.use("/api/v1/category/", require("./routes/productCategory.route"));
+app.use("/api/v1/product/", require("./routes/product.route"));
+app.use("/api/v1/customer/", require("./routes/customer.route"));
+app.use("/api/v1/users", require("./routes/user.route"));
+
 app.get("/", (req, res) => {
   res.send("Homepage");
 });

@@ -23,6 +23,7 @@ router.post(
     if (!errors.isEmpty()) {
       return res.status(400).json({
         error: errors.array()[0].msg,
+        al: "Lỗi nè bạn",
       });
     }
     const { name } = req.body;
@@ -54,9 +55,9 @@ router.get("/all", async (req, res) => {
   }
 });
 
-  // @route GET api/category/:categoryId
-  // @desc Get category by id
-  // @access Public
+// @route GET api/category/:categoryId
+// @desc Get category by id
+// @access Public
 router.get("/:categoryId", categoryId, async (req, res) => {
   res.json(req.category);
 });

@@ -167,8 +167,16 @@ router.post(
 
       // payload for JWT
       const payload = {
-        user: { id: user.id, role: user.role, email: user.email },
+        user: {
+          id: user.id,
+          role: user.role,
+          email: user.email,
+          avatar: user.avatar,
+          ranking: user.ranking,
+          pointCollection: user.pointCollection,
+        },
       };
+
       const accessToken = generateAccessToken(payload);
       const refreshToken = generateRefreshToken(payload);
       refreshTokens.push(refreshToken);

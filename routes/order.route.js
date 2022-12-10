@@ -13,6 +13,20 @@ const customerId = require("../middlewares/customerId");
 const formidable = require("formidable");
 const { castObject } = require("../models/Order");
 
+// @route GET api/order/all
+// @desc Get all order
+// @access private admin
+router.get("/all", auth, adminAuth, async (req, res) => {
+  try {
+    let orders = await Order.find({}).exec();
+    console.log(orders);
+    res.status(200).json(orders);
+  } catch (err) {
+    console.log(err);
+    res.status(500).send("server is error");
+  }
+});
+
 // @route POST api/order/
 // @desc Create order
 // @access private admin
@@ -57,8 +71,21 @@ router.post("/", auth, adminAuth, async (req, res) => {
   });
 });
 
-// @route GET api/order/all
-// @desc Get all order
+// @router GET api/order/:id
+// @desc Get detail order id
 // @access private admin
-router.get("/all", auth, admin);
+router.get("/:id", auth, adminAuth, async (req, res) => {
+  try {
+    const { id } = req.params;
+    let order = await Order.findById(id);
+    if (!order) {
+      return res.status(403).json({ error: "Order not found" });
+    }
+    res.status(200).json(order);
+  } catch (err) {
+    console.log(err);
+    res.status(500).send("Server is error");
+  }
+});
+
 module.exports = router;

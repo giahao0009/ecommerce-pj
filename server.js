@@ -25,7 +25,9 @@ app.use("/api/v1/user/", require("./routes/auth.route"));
 app.use("/api/v1/category/", require("./routes/productCategory.route"));
 app.use("/api/v1/product/", require("./routes/product.route"));
 app.use("/api/v1/customer/", require("./routes/customer.route"));
+app.use("/api/v1/order/", require("./routes/order.route"));
 app.use("/api/v1/users", require("./routes/user.route"));
+app.use("/api/v1/cart", require("./routes/cart.route"));
 
 app.get("/", (req, res) => {
   res.send("Homepage");

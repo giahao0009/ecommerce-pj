@@ -21,12 +21,27 @@ const orderSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+    cusName: {
+      type: String,
+      required: true,
+    },
+    cusPhone: {
+      type: String,
+      required: true,
+    },
+    paymentMethod: {
+      type: String,
+      default: "Thông thường",
+    },
     orderDetail: [
       {
         productId: {
           type: ObjectId,
           ref: "Product",
           required: true,
+        },
+        productName: {
+          type: String,
         },
         quantity: {
           type: Number,

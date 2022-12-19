@@ -69,7 +69,7 @@ router.post(
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
       return res.status(400).json({
-        errors: error.array(),
+        errors: errors.array(),
       });
     }
 
@@ -113,7 +113,7 @@ router.post(
           if (err) {
             throw err;
           }
-          res.json({ token });
+          res.json({ accessToken: token });
         }
       );
     } catch (error) {

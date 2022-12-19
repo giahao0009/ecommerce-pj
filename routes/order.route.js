@@ -1,4 +1,5 @@
 const express = require("express");
+const moment = require("moment");
 const router = express.Router();
 
 // Models
@@ -24,6 +25,135 @@ router.get("/all", auth, adminAuth, async (req, res) => {
   } catch (err) {
     console.log(err);
     res.status(500).send("server is error");
+  }
+});
+
+// @route Get api/order/countUnconfirm
+// @desc get count unconfirm order
+// @access private admin
+router.get("/countUnconfirm", auth, adminAuth, async (req, res) => {
+  try {
+    const orders = await Order.find({ status: "1" });
+    res.status(200).json({ count: orders.length });
+  } catch (err) {
+    console.log(err);
+    res.status(500).send("Server is error");
+  }
+});
+
+// @route Get api/order/countUnconfirm
+// @desc get count unconfirm order
+// @access private admin
+router.get("/countConfirm", auth, adminAuth, async (req, res) => {
+  try {
+    const orders = await Order.find({ status: "2" });
+    res.status(200).json({ count: orders.length });
+  } catch (err) {
+    console.log(err);
+    res.status(500).send("Server is error");
+  }
+});
+
+// @router GET api/order/countSuccess
+// @desc Get count success order
+// @access private admin
+router.get("/countSuccess", auth, adminAuth, async (req, res) => {
+  try {
+    const orders = await Order.find({ status: "3" });
+    res.status(200).json({ count: orders.length });
+  } catch (err) {
+    console.log(err);
+    res.status(500).send("Server is error ");
+  }
+});
+
+// @router GET api/order/countSuccess
+// @desc Get count success order
+// @access private admin
+router.get("/totalIncome", async (req, res) => {
+  let total = 0;
+  let orders = await Order.find({});
+  total = orders.reduce((current, order) => {
+    return current + order.amount;
+  }, 0);
+  res.status(200).json(total);
+});
+
+router.get("/chartIncome", async (req, res) => {
+  let incomes = [
+    {
+      value: 01,
+      array: [],
+    },
+    {
+      value: 02,
+      array: [],
+    },
+    {
+      value: 03,
+      array: [],
+    },
+    {
+      value: 04,
+      array: [],
+    },
+    {
+      value: 05,
+      array: [],
+    },
+    {
+      value: 06,
+      array: [],
+    },
+    {
+      value: 07,
+      array: [],
+    },
+    {
+      value: 08,
+      array: [],
+    },
+    {
+      value: 09,
+      array: [],
+    },
+    {
+      value: 10,
+      array: [],
+    },
+    {
+      value: 11,
+      array: [],
+    },
+    {
+      value: 12,
+      array: [],
+    },
+  ];
+  let orders = await Order.find({});
+  console.log(orders);
+
+  for (let i = 0; i < orders.length; ++i) {
+    let month = moment(orders[i].createAt).format("MM");
+    incomes.forEach((item) => {
+      if (item.value == month) {
+        item.array.push(month);
+      }
+    });
+  }
+
+  res.status(200).json(incomes);
+});
+
+// @router GET api/order/countFail
+// @desc Get count fail order
+// @access private admin
+router.get("/countFail", auth, adminAuth, async (req, res) => {
+  try {
+    const orders = await Order.find({ status: "0" });
+    res.status(200).json({ count: orders.length });
+  } catch (err) {
+    res.status(500).send("Server is error");
   }
 });
 
@@ -82,6 +212,40 @@ router.get("/:id", auth, adminAuth, async (req, res) => {
       return res.status(403).json({ error: "Order not found" });
     }
     res.status(200).json(order);
+  } catch (err) {
+    console.log(err);
+    res.status(500).send("Server is error");
+  }
+});
+
+// @router Patch api/order/confirmOrder/:id
+// @desc Confirm order with id
+// @access private admin
+router.patch("/confirmOrder/:id", auth, adminAuth, async (req, res) => {
+  try {
+    console.log("Hello");
+    const { id } = req.params;
+    const updates = { status: 2 };
+    const options = { new: true };
+    const result = await Order.findByIdAndUpdate(id, updates, options);
+    console.log(result);
+    res.status(200).send("Confirm success");
+  } catch (err) {
+    console.log(err);
+    res.status(500).send("Server is error");
+  }
+});
+
+// @router Patch api/order/confirmOrder/:id
+// @desc Confirm order with id
+// @access private admin
+router.patch("/destroyOrder/:id", auth, adminAuth, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const updates = { status: 0 };
+    const options = { new: true };
+    const result = await Order.findByIdAndUpdate(id, updates, options);
+    res.status(200).send("Destroy success");
   } catch (err) {
     console.log(err);
     res.status(500).send("Server is error");

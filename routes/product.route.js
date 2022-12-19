@@ -75,11 +75,71 @@ router.post("/", auth, adminAuth, (req, res) => {
   });
 });
 
-// @route Get api/product/best
-// @desc Get a list best seller of product
+// @route Get api/product/category/:id
+// @desc Get same product
+// @access Public
+router.get("/category/:id", async (req, res) => {
+  const { id } = req.params;
+  try {
+    let products = await Product.find({ category: id })
+      .select("-photo")
+      .select("-description")
+      .exec();
+    console.log(products);
+    res.status(200).json(products);
+  } catch (err) {
+    console.log(err);
+    res.status(500).send("Server is error");
+  }
+});
+
+// @route Get api/product/sameProduct/:id
+// @desc Get same product
+// @access Public
+router.get("/sameProduct/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const product = await Product.findById(id).select("category").exec();
+    console.log(product);
+    const productSameList = await Product.find({ category: product.category })
+      .select("-photo")
+      .select("-description")
+      .limit(5)
+      .exec();
+    res.status(200).json(productSameList);
+  } catch (err) {
+    console.log(err);
+    res.status(500).send("Server is error");
+  }
+});
+
+// @route Get api/product/bestGear
+// @desc Get a list best gear seller of product
+// @access Public
+router.get("/bestGear", async (req, res) => {
+  try {
+    let products = await Product.find({ category: "639aa0264c0e43205b0c932a" })
+      .select("-photo")
+      .select("-description")
+      .limit(4)
+      .exec();
+    res.status(200).json(products);
+  } catch (error) {
+    console.log(error);
+    res.status(500).send("Server is error");
+  }
+});
+
+// @route Get api/product/bestPC
+// @desc Get a list best PC seller of product
 // @access Public
 router.get("/bestPC", async (req, res) => {
   try {
+    let products = await Product.find({ category: "639a9b014c0e43205b0c92d6" })
+      .select("-photo")
+      .select("-description")
+      .limit(4)
+      .exec();
     res.status(200).json(products);
   } catch (error) {
     console.log(error);
@@ -95,7 +155,7 @@ router.get("/best", async (req, res) => {
     let products = await Product.find({})
       .select("-photo")
       .sort([["sold", "desc"]])
-      .limit(10)
+      .limit(4)
       .exec();
 
     res.status(200).json(products);
@@ -294,22 +354,27 @@ router.delete("/:productId", auth, adminAuth, productId, async (req, res) => {
   let product = req.product;
   try {
     let order = await Order.find({ "orderDetail.productId": product._id });
+    let cart = await User.find({ "cart.productId": product._id });
+
     console.log(order);
-    if (order != [] || order.length > 0) {
-      res.status(400).json({
+    console.log(cart);
+    if (order.length > 0) {
+      res.status(402).json({
         error:
           "Không thể xoá sản phẩm do sản phẩm đang tồn tại trong một hoá đơn",
       });
     }
-    let cart = await User.find({ "cart.productId": product._id });
-    if (cart != [] || cart.length > 0) {
-      res.status(400).json({
+
+    if (cart.length > 0) {
+      res.status(403).json({
         error:
           "Không thể xoá sản phẩm do sản phẩm đang tồn tại trong một giỏ hàng",
       });
     }
     let deleteProduct = await product.remove();
-    res.json({ message: `${deleteProduct.name} deleted  successfully` });
+    if (order === [] && cart === []) {
+      res.status(200).json({ message: "Thực hiện xoá thành công" });
+    }
   } catch (error) {
     console.log(error);
     res.status(500).send("Server error");

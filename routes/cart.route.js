@@ -31,24 +31,39 @@ router.put("/remove/:idItem", auth, async (req, res) => {
 
 // @route POST api/cart/payment
 // @desc post payment
-router.post("/payment", auth, async (req, res) => {
-  const userId = req.user.id;
-  const { addressDelivery, cusName, cusPhone, orderDetail, paymentMethod } =
-    req.body;
-  console.log(addressDelivery, cusName, cusPhone, orderDetail, paymentMethod);
-  if (!addressDelivery || !orderDetail) {
+router.post("/payment", async (req, res) => {
+  // Lấy các tham số được truyền theo
+  const {
+    addressDelivery,
+    cusName,
+    cusPhone,
+    orderDetail,
+    cusId,
+    paymentMethod,
+  } = req.body;
+  console.log(addressDelivery, cusName, cusPhone, orderDetail);
+  // Kiểm tra các tham số có bị trống
+  if (!addressDelivery || !orderDetail || !cusName || !cusPhone) {
     res.status(402).send("Please fill all info of order");
   }
 
   try {
-    let user = await User.findOne({ _id: userId });
+    // Kiểm tra xem có tồn tại user
+    let user;
+    if (cusId) {
+      user = await User.findOne({ _id: cusId });
+    }
+
     let totalPrice = 0;
     for (let i = 0; i < orderDetail.length; i++) {
       totalPrice += orderDetail[i].unitPrice * orderDetail[i].quantity;
     }
     console.log(totalPrice);
     let order = new Order();
-    order.IDCus = userId;
+    if (user) {
+      order.IDCus = cusId;
+      order.account = user.email;
+    }
     order.amount = totalPrice;
     order.addressDelivery = addressDelivery;
     order.cusName = cusName;
@@ -61,10 +76,30 @@ router.post("/payment", auth, async (req, res) => {
 
     await order.save();
     console.log(order);
-    user.cart = [];
-    await user.save();
+    if (user) {
+      user.cart = [];
+      await user.save();
+    }
     res.status(200).send("Payment successfully");
   } catch (err) {
+    console.log(err);
+    res.status(500).send("Server is error");
+  }
+});
+
+// @route POST api/cart/
+// @desc get cart of user
+// @access private user
+router.put("/clearCart", auth, async (req, res) => {
+  const userId = req.user.id;
+  try {
+    let user = await User.findOne({ _id: userId });
+    user.cart = [];
+    await user.save();
+    console.log(user);
+    res.status(200).send("Clear cart successfully");
+  } catch (err) {
+    console.log(err);
     res.status(500).send("Server is error");
   }
 });

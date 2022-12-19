@@ -35,6 +35,38 @@ router.get("/:id", auth, authAdmin, async (req, res) => {
 });
 
 // @route PATCH api/users/:id
+// @desc disable account
+// @access private admin
+router.patch("/disable/:id", auth, authAdmin, async (req, res) => {
+  try {
+    const id = req.params.id;
+    const updates = { status: 0 };
+    const options = { new: true };
+    const result = await User.findByIdAndUpdate(id, updates, options);
+    res.status(200).send("Disable account");
+  } catch (err) {
+    console.log(err);
+    res.send(500).send("Server is error");
+  }
+});
+
+// @route PATCH api/users/:id
+// @desc Enable account
+// @access private admin
+router.patch("/enable/:id", auth, authAdmin, async (req, res) => {
+  try {
+    const id = req.params.id;
+    const updates = { status: 1 };
+    const options = { new: true };
+    const result = await User.findByIdAndUpdate(id, updates, options);
+    res.status(200).send("Enable account");
+  } catch (err) {
+    console.log(err);
+    res.send(500).send("Server is error");
+  }
+});
+
+// @route PATCH api/users/:id
 // @desc update detail user
 // @access private admin
 router.patch("/:id", auth, authAdmin, async (req, res) => {

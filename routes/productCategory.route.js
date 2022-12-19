@@ -3,6 +3,7 @@ const router = express.Router();
 
 // Models
 const ProductCategory = require("../models/ProductCategory");
+const Product = require("../models/Product");
 
 // Middleware
 const auth = require("../middlewares/auth");
@@ -84,6 +85,13 @@ router.put("/:categoryId", auth, adminAuth, categoryId, async (req, res) => {
 router.delete("/:categoryId", auth, adminAuth, categoryId, async (req, res) => {
   let category = req.category;
   try {
+    let products = await Product.find({ category: req.params.categoryId });
+    console.log(products);
+    if (products.length > 0) {
+      return res
+        .status(400)
+        .json({ error: "Không thể xoá loại sản phẩm do có sản phẩm" });
+    }
     let deleteCategory = await category.remove();
     res.json({ message: `${deleteCategory.name} deleted successfully` });
   } catch (error) {

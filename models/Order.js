@@ -1,12 +1,19 @@
 const mongoose = require("mongoose");
+const AutoIncrement = require("mongoose-sequence")(mongoose);
 const { ObjectId } = mongoose.Schema;
 
 const orderSchema = new mongoose.Schema(
   {
+    _id: {
+      type: Number,
+    },
     IDCus: {
-      type: ObjectId,
-      ref: "Customer",
-      required: true,
+      type: String,
+      required: false,
+    },
+    account: {
+      type: String,
+      default: "Khách lẻ",
     },
     status: {
       type: Number,
@@ -54,7 +61,10 @@ const orderSchema = new mongoose.Schema(
       },
     ],
   },
-  { timestamps: true }
+  { _id: false, timestamps: true }
 );
+
+// Add plugin
+orderSchema.plugin(AutoIncrement);
 
 module.exports = mongoose.model("Order", orderSchema);

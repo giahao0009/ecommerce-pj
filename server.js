@@ -30,7 +30,7 @@ app.use("/api/v1/users", require("./routes/user.route"));
 app.use("/api/v1/cart", require("./routes/cart.route"));
 
 app.get("/", (req, res) => {
-  res.send("Homepage");
+  res.send("Homepage world");
 });
 
 // Page not found

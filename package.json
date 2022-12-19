@@ -1,6 +1,7 @@
 {
   "name": "my-app-be",
   "version": "1.0.0",
+  "description": "Hoc tap",
   "main": "server.js",
   "scripts": {
     "start" : "node server.js"
